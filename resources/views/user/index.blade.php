@@ -61,26 +61,12 @@
                                             {{ $user->email }}
                                         </td>
                                         <td class="px-5 py-5 bg-white text-sm">
-                                            @if ($company->compa)
-                                                <span
-                                                    class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                                                    <span aria-hidden
-                                                        class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                                                    <span class="relative">Active</span>
-                                                </span>
-                                            @else
-                                                <span
-                                                    class="relative inline-block px-3 py-1 font-semibold text-red-900 leading-tight">
-                                                    <span aria-hidden
-                                                        class="absolute inset-0 bg-red-200 opacity-50 rounded-full"></span>
-                                                    <span class="relative">Inactive</span>
-                                                </span>
-                                            @endif
+                                          {{ $user->companies[0]->title }}
                                         </td>
                                         <td class="px-5 py-5 bg-white text-sm d-flex">
-                                            <a href="{{ route('users.edit', [$company]) }}"
+                                            <a href="{{ route('users.edit', [$user]) }}"
                                                 class="px-2 py-1 bg-blue-400 text-white">Edit</a>
-                                            <form class="my-1" action="{{ route('users.destroy', [$company]) }}"
+                                            <form class="my-1" action="{{ route('users.destroy', [$user]) }}"
                                                 method="post">
                                                 @csrf
                                                 @method('delete')

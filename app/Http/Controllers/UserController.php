@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Notification;
 use App\Models\User;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Notifications\WelcomeUserNotification;
 
 class UserController extends Controller
 {
@@ -14,9 +17,9 @@ class UserController extends Controller
     public function index()
     {
         $title = 'Users';
-        $companies = Company::where('status',1)->select('id','title')->get();
-        $users = User::whereHas('companies')->filter()->search()->paginate(config('app.page_limit'));
-        return view('user.index', compact('users', 'title','companies'));
+        $companies = Company::where('status', 1)->select('id', 'title')->get();
+        $users = User::whereHas('companies')->with('companies')->filter()->search()->paginate(config('app.page_limit'));
+        return view('user.index', compact('users', 'title', 'companies'));
     }
 
     /**
@@ -25,7 +28,8 @@ class UserController extends Controller
     public function create()
     {
         $title = 'Users';
-        return view('user.add_or_edit', compact('title'));
+        $companies = Company::where('status', 1)->select('id', 'title')->get();
+        return view('user.add_or_edit', compact('title', 'companies'));
     }
 
     /**
@@ -36,8 +40,9 @@ class UserController extends Controller
         $attribute = $this->validation();
         try {
             DB::beginTransaction();
-            $company = User::create($attribute);
-            Notification::send($company, new WelcomeCompanyNotification($company, $attribute['password']));
+            $user = User::create($attribute);
+            $user->companies()->sync($attribute['company']);
+            Notification::send($user, new WelcomeUserNotification($user, $attribute['password']));
         } catch (Exception $e) {
             DB::rollback();
             return redirect()->back()->with('error', __('general.went_wrong'));
@@ -49,7 +54,7 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Company $company)
+    public function show(User $user)
     {
         return redirect()->back()->with('error', 'Not Found');
     }
@@ -57,25 +62,26 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Company $company)
+    public function edit(User $user)
     {
-        if (empty($company)) {
+        if (empty($user)) {
             return redirect()->back()->with('error', 'Not Found');
         }
-
-        $title = 'Companies';
-        return view('company.add_or_edit', compact('title', 'company'));
+        $title = 'user';
+        $user->load('companies');
+        $companies = Company::where('status', 1)->select('id', 'title')->get();
+        return view('user.add_or_edit', compact('title', 'user', 'companies'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Company $company)
+    public function update(Request $request, User $user)
     {
-        $attribute = $this->validation($company->id ?? null);
+        $attribute = $this->validation($user->id ?? null);
         try {
             DB::beginTransaction();
-            $company->update($attribute);
+            $user->update($attribute);
         } catch (Exception $e) {
             DB::rollback();
             return redirect()->back()->with('error', __('general.went_wrong'));
@@ -87,9 +93,17 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Company $company)
+    public function destroy(User $user)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $user->delete();
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', __('general.went_wrong'));
+        }
+        DB::commit();
+        return redirect()->route('companies.index')->withSuccess(__('general.company.delete'));
     }
 
     public function validation(string $id = null): array
@@ -97,13 +111,12 @@ class UserController extends Controller
 
         $attribute = request()->validate(
             [
-                "title" => 'required|min:3|max:255',
+                "name" => 'required|min:3|max:255',
                 "email" => 'required|string|email|max:255|unique:companies,email,' . $id,
                 "password" => $id ? 'nullable|min:8|max:32' : 'required|min:8|max:32',
-                "status" => "required|in:1,0"
+                "company" => "required"
             ]
         );
         return $attribute;
     }
 }
-

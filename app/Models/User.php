@@ -41,11 +41,11 @@ class User extends Authenticatable
     public function scopeFilter($query)
     {
         if(request()->company != null){
-            
+
                 $query->whereHas('companies', function($internalQuery){
                     $internalQuery->where('company_id',request()->company);
                 });
-            
+
         }
     }
 
@@ -57,6 +57,11 @@ class User extends Authenticatable
                 $internalQuery->where('name', 'like', $search)->orWhere('email', $search);
             });
         }
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = bcrypt($value);
     }
 
     /**

@@ -91,7 +91,15 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $company->delete();
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', __('general.went_wrong'));
+        }
+        DB::commit();
+        return redirect()->route('companies.index')->withSuccess(__('general.company.delete'));
     }
 
     public function validation(string $id = null): array

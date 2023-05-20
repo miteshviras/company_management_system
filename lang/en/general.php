@@ -3,9 +3,9 @@
 return [
 
     'company' => [
-        'create' => 'company account created successfully',
-        'edit' => 'company account editd successfully',
-        'delete' => 'company account deleted successfully',
+        'create' => 'data created successfully',
+        'edit' => 'data updated successfully',
+        'delete' => 'data deleted successfully',
     ],
     'went_wrong' => 'Something went wrong.'
 ];

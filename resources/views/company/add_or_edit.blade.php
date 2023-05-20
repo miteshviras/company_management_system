@@ -4,7 +4,9 @@
         <div class="mx-auto w-full max-w-[550px]">
             <form action="{{ empty($company) ?  route('companies.store') : route('companies.update',[$company->id]) }}" id="is_validate_form" method="POST">
                 @csrf
+                @if(!empty($company))
                 @method('PUT')
+                @endif
                 <div class="-mx-3 flex flex-wrap">
                     <div class="w-full px-3">
                         <div class="mb-5">
