@@ -17,6 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('company_id')->index();
             $table->enum('type',['CL','PL','SL','LWP'])->default('LWP');
             $table->enum('status',['A','P','R'])->default('P');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->timestamps();
         });
     }

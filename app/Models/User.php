@@ -34,6 +34,31 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public function companies(){
+        return $this->belongsToMany(Company::class,'users_companies');
+    }
+
+    public function scopeFilter($query)
+    {
+        if(request()->company != null){
+            
+                $query->whereHas('companies', function($internalQuery){
+                    $internalQuery->where('company_id',request()->company);
+                });
+            
+        }
+    }
+
+    public function scopeSearch($query)
+    {
+        if (!empty(request()->search)) {
+            $search = "%" . request()->search . "%";
+            $query->where(function ($internalQuery) use ($search) {
+                $internalQuery->where('name', 'like', $search)->orWhere('email', $search);
+            });
+        }
+    }
+
     /**
      * The attributes that should be cast.
      *

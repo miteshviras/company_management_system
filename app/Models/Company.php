@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,8 +25,10 @@ class Company extends Model
 
     public function scopeFilter($query)
     {
-        if (in_array(request()->status, [0, 1])) {
-            $query->where('status', request()->status);
+        if(request()->status != null){
+            if (in_array(request()->status, [0, 1])) {
+                $query->where('status', request()->status);
+            }
         }
     }
 
@@ -37,5 +40,9 @@ class Company extends Model
                 $internalQuery->where('title', 'like', $search)->orWhere('email', $search);
             });
         }
+    }
+
+    public function users(){
+        return $this->belongsToMany(User::class,'users_companies');
     }
 }
