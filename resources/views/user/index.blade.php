@@ -8,15 +8,17 @@
 
 
             <form action="" method="get" class="flex w-1/2 space-x-4">
-                <select name="company" id=""
-                    class="w-1/3 rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md valid">
-                    <option value="" selected>All</option>
-                    @foreach($companies as $company)
-                    <option value="{{ $company->id }}"> {{ $company->title }}</option>
-                    @endforeach
-                </select>
+                @if (!auth('company_web')->check())
+                    <select name="company" id=""
+                        class="w-1/3 rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md valid">
+                        <option value="" selected>All</option>
+                        @foreach ($companies as $company)
+                            <option value="{{ $company->id }}"> {{ $company->title }}</option>
+                        @endforeach
+                    </select>
+                @endif
                 <input type="search" name="search" value="{{ request()->query('search') ?? '' }}"
-                    class="w-1/3 rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md valid">
+                    class="w-1/3 rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md valid" placeholder="Search">
 
                 <button type="submit"
                     class="bg-blue-500 text-white active:bg-red-600 font-bold uppercase text-base px-8 py-3 rounded shadow-md hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150">
@@ -61,7 +63,7 @@
                                             {{ $user->email }}
                                         </td>
                                         <td class="px-5 py-5 bg-white text-sm">
-                                          {{ $user->companies[0]->title }}
+                                            {{ $user->companies[0]->title }}
                                         </td>
                                         <td class="px-5 py-5 bg-white text-sm d-flex">
                                             <a href="{{ route('users.edit', [$user]) }}"

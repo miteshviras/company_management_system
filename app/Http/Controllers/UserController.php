@@ -17,8 +17,15 @@ class UserController extends Controller
     public function index()
     {
         $title = 'Users';
-        $companies = Company::where('status', 1)->select('id', 'title')->get();
-        $users = User::whereHas('companies')->with('companies')->filter()->search()->paginate(config('app.page_limit'));
+        $companies = [];
+        if (!auth('company_web')->check()) {
+            $companies = Company::where('status', 1)->select('id', 'title')->get();
+        }
+        $users = User::whereHas('companies', function ($companiesWhereQuery) {
+            if (auth('company_web')->check()) {
+                $companiesWhereQuery->where('company_id', auth('company_web')->id());
+            }
+        })->with('companies')->filter()->search()->paginate(config('app.page_limit'));
         return view('user.index', compact('users', 'title', 'companies'));
     }
 
@@ -28,7 +35,10 @@ class UserController extends Controller
     public function create()
     {
         $title = 'Users';
-        $companies = Company::where('status', 1)->select('id', 'title')->get();
+        $companies = [];
+        if (!auth('company_web')->check()) {
+            $companies = Company::where('status', 1)->select('id', 'title')->get();
+        }
         return view('user.add_or_edit', compact('title', 'companies'));
     }
 
@@ -48,7 +58,7 @@ class UserController extends Controller
             return redirect()->back()->with('error', __('general.went_wrong'));
         }
         DB::commit();
-        return redirect()->route('companies.index')->withSuccess(__('general.company.create'));
+        return redirect()->route('users.index')->withSuccess(__('general.company.create'));
     }
 
     /**
@@ -69,7 +79,10 @@ class UserController extends Controller
         }
         $title = 'user';
         $user->load('companies');
-        $companies = Company::where('status', 1)->select('id', 'title')->get();
+        $companies = [];
+        if (!auth('company_web')->check()) {
+            $companies = Company::where('status', 1)->select('id', 'title')->get();
+        }
         return view('user.add_or_edit', compact('title', 'user', 'companies'));
     }
 
@@ -87,7 +100,7 @@ class UserController extends Controller
             return redirect()->back()->with('error', __('general.went_wrong'));
         }
         DB::commit();
-        return redirect()->route('companies.index')->withSuccess(__('general.company.edit'));
+        return redirect()->route('users.index')->withSuccess(__('general.company.edit'));
     }
 
     /**

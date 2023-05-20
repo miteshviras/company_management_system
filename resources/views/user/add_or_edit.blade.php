@@ -59,23 +59,27 @@
                     @endif
 
                     <div class="w-full px-3">
-                        <div class="mb-5">
-                            <label for="fName" class="mb-3 block text-base font-medium text-[#07074D]">
-                                Company
-                            </label>
-                            <select name="company" id="status" data-rule-required="true"
-                                class="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md">
-                                <option value="">Please Select The Company</option>
-                                @foreach ($companies as $company)
-                                    <option value="{{ $company->id }}"
-                                        {{ $user->companies[0]->id == $company->id ? 'selected' : '' }}>
-                                        {{ $company->title }}</option>
-                                @endforeach
-                            </select>
-                            @error('company')
-                                <span class="text-red-400">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        @if (auth()->check())
+                            <div class="mb-5">
+                                <label for="fName" class="mb-3 block text-base font-medium text-[#07074D]">
+                                    Company
+                                </label>
+                                <select name="company" id="status" data-rule-required="true"
+                                    class="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md">
+                                    <option value="">Please Select The Company</option>
+                                    @foreach ($companies as $company)
+                                        <option value="{{ $company->id }}"
+                                            {{ $user->companies[0]->id == $company->id ? 'selected' : '' }}>
+                                            {{ $company->title }}</option>
+                                    @endforeach
+                                </select>
+                                @error('company')
+                                    <span class="text-red-400">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        @else
+                        <input type="hidden" name="company" value="{{ auth('company_web')->id() }}">
+                        @endif
                     </div>
                 </div>
                 <div>

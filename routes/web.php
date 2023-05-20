@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompanyAuthController;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
@@ -23,13 +24,17 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
+        'companyLogin' => Route::has('company.login'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
 });
 
+Route::get('company/login',[CompanyAuthController::class,'index'])->name('company.login');
+Route::post('company/login',[CompanyAuthController::class,'store'])->name('company.store');
 
-Route::group(['middleware' => 'auth'],function(){
+
+Route::group(['middleware' => ['custom.auth']],function(){
     Route::get('/dashboard', [indexController::class, 'index'])->name('dashboard');
     Route::resource('companies',CompanyController::class);
     Route::resource('users',UserController::class);
