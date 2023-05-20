@@ -16,8 +16,26 @@ class Company extends Model
         'password',
         'status'
     ];
+
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = bcrypt($value);
+    }
+
+    public function scopeFilter($query)
+    {
+        if (in_array(request()->status, [0, 1])) {
+            $query->where('status', request()->status);
+        }
+    }
+
+    public function scopeSearch($query)
+    {
+        if (!empty(request()->search)) {
+            $search = "%" . request()->search . "%";
+            $query->where(function ($internalQuery) use ($search) {
+                $internalQuery->where('title', 'like', $search)->orWhere('email', $search);
+            });
+        }
     }
 }

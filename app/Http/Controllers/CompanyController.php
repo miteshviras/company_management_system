@@ -17,7 +17,7 @@ class CompanyController extends Controller
     public function index()
     {
         $title = 'Companies';
-        $companies = Company::paginate(config('app.page_limit'));
+        $companies = Company::filter()->search()->paginate(config('app.page_limit'));
         return view('company.index', compact('companies', 'title'));
     }
 
@@ -83,7 +83,7 @@ class CompanyController extends Controller
             return redirect()->back()->with('error', __('general.went_wrong'));
         }
         DB::commit();
-        return redirect()->route('companies.index')->withSuccess(__('general.company.create'));
+        return redirect()->route('companies.index')->withSuccess(__('general.company.edit'));
     }
 
     /**
