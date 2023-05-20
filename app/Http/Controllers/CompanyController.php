@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Notification;
+use App\Notifications\WelcomeCompanyNotification;
 
 class CompanyController extends Controller
 {
@@ -12,7 +16,9 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        //
+        $title = 'Companies';
+        $companies = Company::paginate(config('app.page_limit'));
+        return view('company.index', compact('companies', 'title'));
     }
 
     /**
@@ -20,7 +26,8 @@ class CompanyController extends Controller
      */
     public function create()
     {
-        //
+        $title = 'Companies';
+        return view('company.add_or_edit', compact('title'));
     }
 
     /**
@@ -28,7 +35,17 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $attribute = $this->validation();
+        try {
+            DB::beginTransaction();
+            $company = Company::create($attribute);
+            Notification::send($company, new WelcomeCompanyNotification($company, $attribute['password']));
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', __('general.went_wrong'));
+        }
+        DB::commit();
+        return redirect()->route('companies.index')->withSuccess(__('general.company.create'));
     }
 
     /**
@@ -36,7 +53,7 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        //
+        return redirect()->back()->with('error', 'Not Found');
     }
 
     /**
@@ -44,7 +61,12 @@ class CompanyController extends Controller
      */
     public function edit(Company $company)
     {
-        //
+        if (empty($company)) {
+            return redirect()->back()->with('error', 'Not Found');
+        }
+
+        $title = 'Companies';
+        return view('company.add_or_edit', compact('title', 'company'));
     }
 
     /**
@@ -52,7 +74,16 @@ class CompanyController extends Controller
      */
     public function update(Request $request, Company $company)
     {
-        //
+        $attribute = $this->validation($company->id ?? null);
+        try {
+            DB::beginTransaction();
+            $company->update($attribute);
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', __('general.went_wrong'));
+        }
+        DB::commit();
+        return redirect()->route('companies.index')->withSuccess(__('general.company.create'));
     }
 
     /**
@@ -61,5 +92,19 @@ class CompanyController extends Controller
     public function destroy(Company $company)
     {
         //
+    }
+
+    public function validation(string $id = null): array
+    {
+
+        $attribute = request()->validate(
+            [
+                "title" => 'required|min:3|max:255',
+                "email" => 'required|string|email|max:255|unique:companies,email,' . $id,
+                "password" => $id ? 'nullable|min:8|max:32' : 'required|min:8|max:32',
+                "status" => "required|in:1,0"
+            ]
+        );
+        return $attribute;
     }
 }
